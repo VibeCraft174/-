@@ -3,53 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>TimeSense — трекер с аккаунтами</title>
-    <!-- Google Fonts + Font Awesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <title>TimeSense — трекер времени</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(145deg, #f1f5f9 0%, #e6edf5 100%);
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
             font-family: 'Inter', sans-serif;
             color: #0f172a;
-            min-height: 100vh;
             padding: 1rem;
+            min-height: 100vh;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Тосты */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-
-        /* Стили для авторизации (модальное окно) */
+        .toast {
+            background: white;
+            border-radius: 48px;
+            padding: 10px 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            transform: translateX(400px);
+            animation: slideIn 0.2s forwards;
+        }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.info { border-left: 4px solid #3b82f6; }
+        @keyframes slideIn { to { transform: translateX(0); } }
+        
+        /* Модалка авторизации */
         .auth-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(6px);
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            transition: 0.2s;
         }
         .auth-card {
             background: white;
-            max-width: 450px;
-            width: 90%;
             border-radius: 2rem;
-            padding: 2rem 1.5rem;
-            box-shadow: 0 30px 50px rgba(0,0,0,0.2);
+            padding: 2rem;
+            max-width: 460px;
+            width: 90%;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.2);
             animation: fadeUp 0.2s ease;
         }
         @keyframes fadeUp {
@@ -59,8 +75,8 @@
         .auth-tabs {
             display: flex;
             gap: 1rem;
-            margin-bottom: 1.5rem;
             border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
         }
         .auth-tab {
             padding: 0.5rem 0;
@@ -68,6 +84,7 @@
             cursor: pointer;
             color: #64748b;
             border-bottom: 2px solid transparent;
+            transition: 0.2s;
         }
         .auth-tab.active {
             color: #3b82f6;
@@ -78,39 +95,62 @@
             flex-direction: column;
             gap: 1rem;
         }
-        .auth-form input {
-            padding: 0.8rem 1rem;
-            border-radius: 2rem;
-            border: 1px solid #cbd5e1;
-            font-size: 0.9rem;
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
         }
-        .auth-form button {
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border-radius: 48px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background: #fefefe;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        .btn-primary {
             background: #3b82f6;
             color: white;
             border: none;
-            padding: 0.8rem;
-            border-radius: 2rem;
+            padding: 12px;
+            border-radius: 48px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 0.5rem;
+            transition: 0.2s;
+            width: 100%;
         }
-        .error-msg {
-            color: #dc2626;
-            font-size: 0.75rem;
-            margin-top: -0.5rem;
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: scale(0.98);
         }
+        /* Основной интерфейс */
         .user-bar {
+            background: white;
+            border-radius: 60px;
+            padding: 0.5rem 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 3rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
         .user-info {
-            font-weight: 500;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .logout-btn {
             background: none;
@@ -119,23 +159,20 @@
             cursor: pointer;
             font-size: 0.9rem;
         }
-        .hidden {
-            display: none;
-        }
-
-        /* основной интерфейс */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            margin-top: 1rem;
         }
         .card {
             background: rgba(255,255,255,0.96);
             border-radius: 1.8rem;
             padding: 1.3rem;
-            box-shadow: 0 15px 30px -12px rgba(0,0,0,0.1);
-            transition: 0.2s;
+            box-shadow: 0 15px 30px -12px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
         }
         .card-title {
             font-size: 1.2rem;
@@ -147,8 +184,6 @@
             border-left: 4px solid #3b82f6;
             padding-left: 0.8rem;
         }
-
-        /* активный таймер */
         .active-timer {
             background: linear-gradient(115deg, #fef9e3, #ffffff);
             border-radius: 1.5rem;
@@ -167,67 +202,37 @@
             color: #f1f5f9;
             margin: 0.4rem 0;
         }
-
-        /* форма добавления задачи */
         .add-task {
             display: flex;
             flex-direction: column;
             gap: 0.8rem;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1rem;
         }
         .add-task input {
-            padding: 0.7rem 1rem;
-            border-radius: 2rem;
+            padding: 12px 16px;
+            border-radius: 48px;
             border: 1px solid #e2e8f0;
-        }
-        .row-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            align-items: center;
-            justify-content: space-between;
+            font-size: 0.9rem;
         }
         .chip-group {
             display: flex;
-            gap: 0.5rem;
             flex-wrap: wrap;
+            gap: 0.5rem;
         }
         .chip {
             background: #f1f5f9;
-            border-radius: 2rem;
-            padding: 0.4rem 0.9rem;
+            border-radius: 40px;
+            padding: 0.4rem 1rem;
             font-size: 0.8rem;
             cursor: pointer;
             transition: 0.1s;
-            border: 1px solid transparent;
         }
         .chip.active {
             background: #3b82f6;
             color: white;
-            border-color: #3b82f6;
         }
-        .chip i {
-            margin-right: 0.3rem;
-        }
-
-        .btn {
-            background: #3b82f6;
-            border: none;
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 2rem;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #cbd5e1;
-            color: #334155;
-        }
-
-        /* список задач */
         .task-list {
-            max-height: 320px;
+            max-height: 300px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -243,19 +248,7 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-        }
-        .task-name {
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-        }
-        .badge-cat {
-            background: #e0e7ff;
-            border-radius: 1rem;
-            padding: 0.1rem 0.5rem;
-            font-size: 0.7rem;
+            gap: 0.5rem;
         }
         .task-actions {
             display: flex;
@@ -264,22 +257,17 @@
         .icon-btn {
             background: transparent;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             cursor: pointer;
-        }
-
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.8rem 0;
+            transition: 0.1s;
         }
         .goal-box {
             background: #eef2ff;
             border-radius: 1.2rem;
             padding: 0.8rem;
-            margin: 0.8rem 0;
+            margin-top: 1rem;
         }
         .progress-bar {
             height: 8px;
@@ -298,13 +286,16 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem;
-            margin-top: 0.8rem;
+            margin-top: 0.5rem;
         }
-        .achieve {
-            background: white;
-            border-radius: 2rem;
-            padding: 0.2rem 0.7rem;
-            font-size: 0.7rem;
+        .hidden {
+            display: none;
+        }
+        @media (max-width: 1000px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
         }
         footer {
             text-align: center;
@@ -312,167 +303,164 @@
             font-size: 0.7rem;
             color: #5b6e8c;
         }
-        @media (max-width: 1000px) {
-            .dashboard { grid-template-columns: 1fr; gap: 1rem; }
+        button {
+            background: none;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <!-- Блок авторизации (изначально виден) -->
-    <div id="authOverlay" class="auth-overlay">
-        <div class="auth-card">
-            <div class="auth-tabs">
-                <div class="auth-tab active" data-tab="login">Вход</div>
-                <div class="auth-tab" data-tab="register">Регистрация</div>
-            </div>
-            <div id="loginForm" class="auth-form">
-                <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
-                <input type="password" id="loginPassword" placeholder="Пароль">
-                <div id="loginError" class="error-msg"></div>
-                <button id="doLoginBtn">Войти</button>
-            </div>
-            <div id="registerForm" class="auth-form hidden">
-                <input type="text" id="regName" placeholder="Имя">
-                <input type="text" id="regSurname" placeholder="Фамилия">
-                <input type="email" id="regEmail" placeholder="Email">
-                <input type="password" id="regPassword" placeholder="Пароль">
-                <input type="password" id="regPassword2" placeholder="Повтор пароля">
-                <div id="regError" class="error-msg"></div>
-                <button id="doRegisterBtn">Зарегистрироваться</button>
-            </div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div id="authOverlay" class="auth-overlay">
+    <div class="auth-card">
+        <div class="auth-tabs">
+            <div class="auth-tab active" data-tab="login">Вход</div>
+            <div class="auth-tab" data-tab="register">Регистрация</div>
         </div>
-    </div>
-
-    <!-- Основной интерфейс (скрыт до авторизации) -->
-    <div id="appContent" class="hidden">
-        <div class="user-bar">
-            <div class="user-info" id="userNameDisplay"></div>
-            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+        <div id="loginForm" class="auth-form">
+            <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email" autocomplete="email"></div>
+            <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Пароль"></div>
+            <button class="btn-primary" id="doLoginBtn">Войти</button>
         </div>
-
-        <div class="dashboard">
-            <!-- Колонка 1: задачи -->
-            <div class="card">
-                <div class="card-title"><i class="fas fa-tasks"></i> Мои задачи</div>
-                <div class="active-timer" id="activeTimerArea">--</div>
-                <div class="add-task">
-                    <input type="text" id="taskName" placeholder="Что делаем? Например: Сделать макет">
-                    <div class="row-buttons">
-                        <div class="chip-group" id="categoryGroup">
-                            <span class="chip" data-cat="📚 Работа">📚 Работа</span>
-                            <span class="chip" data-cat="🎓 Учёба">🎓 Учёба</span>
-                            <span class="chip" data-cat="🏠 Личное">🏠 Личное</span>
-                            <span class="chip" data-cat="⚡ Хобби">⚡ Хобби</span>
-                        </div>
-                        <div class="chip-group" id="priorityGroup">
-                            <span class="chip" data-prio="high">🔴 Высокий</span>
-                            <span class="chip" data-prio="medium">🟠 Средний</span>
-                            <span class="chip" data-prio="low">🟢 Низкий</span>
-                        </div>
-                    </div>
-                    <button class="btn" id="addTaskBtn">+ Добавить задачу</button>
-                </div>
-                <div id="taskList" class="task-list"></div>
-                <div style="margin-top: 0.8rem; display: flex; gap: 0.5rem;">
-                    <button id="exportBtn" class="btn-outline" style="padding:0.3rem 0.8rem;"><i class="fas fa-download"></i> Экспорт</button>
-                    <button id="resetDataBtn" class="btn-outline" style="padding:0.3rem 0.8rem;"><i class="fas fa-trash"></i> Сброс</button>
-                </div>
-            </div>
-
-            <!-- Колонка 2: аналитика -->
-            <div class="card">
-                <div class="card-title"><i class="fas fa-chart-line"></i> Аналитика</div>
-                <div class="stats-row">
-                    <span><i class="far fa-clock"></i> Всего: <strong id="totalTime">0ч</strong></span>
-                    <span><i class="fas fa-list"></i> Задач: <strong id="taskCount">0</strong></span>
-                </div>
-                <canvas id="weekChart" width="400" height="150" style="max-height:150px; width:100%"></canvas>
-                <div class="insight" id="insightText" style="background:#fefce8; border-radius:1rem; padding:0.6rem; margin-top:0.8rem; font-size:0.8rem;"></div>
-                <div class="goal-box">
-                    <div><i class="fas fa-bullseye"></i> Дневная цель (минут)</div>
-                    <input type="number" id="dailyGoalInput" value="60" style="width:100%; border-radius:2rem; padding:0.4rem; margin:0.4rem 0;">
-                    <div>Сегодня: <span id="todayProgress">0%</span></div>
-                    <div class="progress-bar"><div id="goalFill" style="height:8px; width:0%; background:#3b82f6; border-radius:8px;"></div></div>
-                </div>
-            </div>
-
-            <!-- Колонка 3: геймификация -->
-            <div class="card">
-                <div class="card-title"><i class="fas fa-award"></i> Достижения</div>
-                <div class="level-box" id="levelBox">
-                    <div style="font-size:2rem;" id="levelEmoji">🌱</div>
-                    <div id="levelName" style="font-weight:700;">Новичок</div>
-                    <div id="nextLevelInfo" style="font-size:0.7rem;"></div>
-                    <div class="progress-bar" style="background:#ddd;"><div id="levelProgress" style="height:6px; width:0%; background:#8b5cf6;"></div></div>
-                </div>
-                <div id="achievementsList" class="achievements"></div>
-                <div style="margin-top:1rem; background:#f1f5f9; border-radius:1rem; padding:0.5rem;">
-                    <i class="fas fa-lightbulb"></i> <strong>Совет</strong><br>
-                    <span id="dailyTip">Ставьте приоритеты и трекайте время — вы станете продуктивнее!</span>
-                </div>
-            </div>
+        <div id="registerForm" class="auth-form hidden">
+            <div class="input-group"><i class="fas fa-user"></i><input type="text" id="regName" placeholder="Имя"></div>
+            <div class="input-group"><i class="fas fa-user-friends"></i><input type="text" id="regSurname" placeholder="Фамилия"></div>
+            <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail" placeholder="Email"></div>
+            <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="Пароль"></div>
+            <div class="input-group"><i class="fas fa-check-circle"></i><input type="password" id="regPassword2" placeholder="Повтор пароля"></div>
+            <button class="btn-primary" id="doRegisterBtn">Создать аккаунт</button>
         </div>
-        <footer>💾 Все данные привязаны к вашему аккаунту на этом устройстве · Несколько пользователей — свои данные</footer>
     </div>
 </div>
 
+<div id="appContent" class="hidden">
+    <div class="user-bar">
+        <div class="user-info"><i class="fas fa-user-circle"></i> <span id="userNameDisplay"></span></div>
+        <div style="display: flex; gap: 12px;">
+            <button id="exportDataBtn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fas fa-download"></i></button>
+            <button id="importDataBtn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fas fa-upload"></i></button>
+            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </div>
+    <div class="dashboard">
+        <!-- Левая колонка: задачи -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-tasks"></i> Мои задачи</div>
+            <div class="active-timer" id="activeTimerArea">—</div>
+            <div class="add-task">
+                <input type="text" id="taskName" placeholder="Название задачи...">
+                <div class="chip-group" id="categoryGroup">
+                    <span class="chip" data-cat="📚 Работа">📚 Работа</span>
+                    <span class="chip" data-cat="🎓 Учёба">🎓 Учёба</span>
+                    <span class="chip" data-cat="🏠 Личное">🏠 Личное</span>
+                    <span class="chip" data-cat="⚡ Хобби">⚡ Хобби</span>
+                </div>
+                <div class="chip-group" id="priorityGroup">
+                    <span class="chip" data-prio="high">🔴 Высокий</span>
+                    <span class="chip" data-prio="medium">🟠 Средний</span>
+                    <span class="chip" data-prio="low">🟢 Низкий</span>
+                </div>
+                <button class="btn-primary" id="addTaskBtn">+ Добавить задачу</button>
+            </div>
+            <div id="taskList" class="task-list"></div>
+            <button id="resetDataBtn" style="margin-top: 0.8rem; background:#fee2e2; border:none; padding:6px 12px; border-radius:40px; width:100%;">Сбросить все данные</button>
+        </div>
+
+        <!-- Центр: аналитика -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-line"></i> Аналитика</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <span>⏱️ Всего: <strong id="totalTime">0ч</strong></span>
+                <span>📋 Задач: <strong id="taskCount">0</strong></span>
+            </div>
+            <canvas id="weekChart" width="400" height="150" style="max-height:150px; width:100%"></canvas>
+            <div id="insightText" style="background:#fefce8; border-radius:1rem; padding:0.6rem; margin:0.8rem 0; font-size:0.8rem;"></div>
+            <div class="goal-box">
+                <div><i class="fas fa-bullseye"></i> Дневная цель (минут)</div>
+                <input type="number" id="dailyGoalInput" value="60" style="width:100%; border-radius:40px; padding:6px 12px; border:1px solid #cbd5e1; margin:6px 0;">
+                <div>Сегодня: <span id="todayProgress">0%</span></div>
+                <div class="progress-bar"><div id="goalFill" style="height:8px; width:0%; background:#3b82f6;"></div></div>
+            </div>
+        </div>
+
+        <!-- Правая: геймификация -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-award"></i> Прогресс</div>
+            <div class="level-box">
+                <div style="font-size:2rem;" id="levelEmoji">🌱</div>
+                <div id="levelName" style="font-weight:700;">Новичок</div>
+                <div id="nextLevelInfo" style="font-size:0.7rem;"></div>
+                <div class="progress-bar" style="background:#ddd;"><div id="levelProgress" style="height:6px; width:0%; background:#8b5cf6;"></div></div>
+            </div>
+            <div id="achievementsList" class="achievements"></div>
+            <div style="margin-top:1rem; background:#eef2ff; border-radius:1rem; padding:0.5rem;">
+                <i class="fas fa-lightbulb"></i> <strong>Совет дня</strong><br>
+                <span id="dailyTip">Начните трекать время — станьте продуктивнее!</span>
+            </div>
+        </div>
+    </div>
+    <footer>🔐 Данные хранятся только на этом устройстве. Используйте экспорт/импорт для переноса между устройствами.</footer>
+</div>
+
 <script>
-    // ---------- МОДЕЛЬ ДАННЫХ (привязка к email) ----------
-    let currentUser = null;          // { email, name, surname }
-    let tasks = [];                  // задачи текущего пользователя
-    let dailyHistory = [];           // история текущего пользователя
+    // ======================= ЛОКАЛЬНАЯ БАЗА ДАННЫХ (без сервера) =======================
+    let currentUserEmail = null;
+    let usersDB = {};
+    let tasks = [];
+    let dailyHistory = [];
     let dailyGoalMinutes = 60;
     let activeTaskId = null;
     let timerInterval = null;
     let startTimestamp = null;
     let weekChart = null;
 
-    // Хранилище всех пользователей (localStorage) - эмуляция БД на устройстве
-    function getUsersDB() {
-        let db = localStorage.getItem('timesense_users');
-        if (!db) return {};
-        return JSON.parse(db);
-    }
-    function saveUsersDB(db) {
-        localStorage.setItem('timesense_users', JSON.stringify(db));
-    }
-    // Хеширование пароля (простое, для демонстрации)
-    function hashPassword(pwd) {
-        let hash = 0;
-        for (let i = 0; i < pwd.length; i++) {
-            hash = ((hash << 5) - hash) + pwd.charCodeAt(i);
-            hash |= 0;
+    // Загрузка всех пользователей из localStorage
+    function loadUsersDB() {
+        const stored = localStorage.getItem('timesense_users_local');
+        if (stored) {
+            usersDB = JSON.parse(stored);
+        } else {
+            usersDB = {};
         }
-        return hash.toString();
+    }
+    function saveUsersDB() {
+        localStorage.setItem('timesense_users_local', JSON.stringify(usersDB));
+    }
+
+    // Сохранить данные текущего пользователя
+    function saveCurrentUserData() {
+        if (!currentUserEmail) return;
+        if (!usersDB[currentUserEmail]) {
+            usersDB[currentUserEmail] = {};
+        }
+        usersDB[currentUserEmail].tasks = tasks;
+        usersDB[currentUserEmail].history = dailyHistory;
+        usersDB[currentUserEmail].goal = dailyGoalMinutes;
+        saveUsersDB();
     }
 
     // Загрузить данные текущего пользователя
-    function loadUserData(email) {
-        const db = getUsersDB();
-        const userData = db[email];
-        if (userData && userData.data) {
-            tasks = userData.data.tasks || [];
-            dailyHistory = userData.data.history || [];
-            dailyGoalMinutes = userData.data.goal || 60;
-        } else {
+    function loadCurrentUserData() {
+        if (!currentUserEmail || !usersDB[currentUserEmail]) {
             tasks = [];
             dailyHistory = [];
             dailyGoalMinutes = 60;
+        } else {
+            tasks = usersDB[currentUserEmail].tasks || [];
+            dailyHistory = usersDB[currentUserEmail].history || [];
+            dailyGoalMinutes = usersDB[currentUserEmail].goal || 60;
         }
         document.getElementById('dailyGoalInput').value = dailyGoalMinutes;
+        renderAll();
     }
 
-    function saveCurrentUserData() {
-        if (!currentUser) return;
-        const db = getUsersDB();
-        if (!db[currentUser.email]) db[currentUser.email] = { password: db[currentUser.email]?.password, data: {} };
-        db[currentUser.email].data = {
-            tasks: tasks,
-            history: dailyHistory,
-            goal: dailyGoalMinutes
-        };
-        saveUsersDB(db);
+    function showToast(message, type = "info") {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     // Остановка таймера и запись времени
@@ -496,11 +484,13 @@
     }
 
     function addToTodayHistory(seconds) {
-        const today = new Date().toISOString().slice(0,10);
+        const today = new Date().toISOString().slice(0, 10);
         const existing = dailyHistory.find(d => d.date === today);
-        if (existing) existing.seconds += seconds;
-        else dailyHistory.push({ date: today, seconds: seconds });
-        dailyHistory = dailyHistory.filter(d => new Date(d.date) > new Date(Date.now() - 60*24*3600*1000));
+        if (existing) {
+            existing.seconds += seconds;
+        } else {
+            dailyHistory.push({ date: today, seconds: seconds });
+        }
         saveCurrentUserData();
     }
 
@@ -523,13 +513,16 @@
 
     function addTask() {
         const name = document.getElementById('taskName').value.trim();
-        if (!name) { alert("Введите название"); return; }
+        if (!name) {
+            showToast("Введите название задачи", "error");
+            return;
+        }
         const activeCat = document.querySelector('#categoryGroup .chip.active');
         const category = activeCat ? activeCat.dataset.cat : "📚 Работа";
         const activePrio = document.querySelector('#priorityGroup .chip.active');
         const priority = activePrio ? activePrio.dataset.prio : "medium";
         const newTask = {
-            id: Date.now(),
+            id: Date.now().toString(),
             name: name,
             category: category,
             priority: priority,
@@ -538,6 +531,7 @@
         tasks.push(newTask);
         saveCurrentUserData();
         document.getElementById('taskName').value = '';
+        showToast(`Задача "${name}" добавлена`, "success");
         renderAll();
     }
 
@@ -545,46 +539,52 @@
         if (activeTaskId === taskId) stopTimerAndRecord();
         tasks = tasks.filter(t => t.id !== taskId);
         saveCurrentUserData();
+        showToast("Задача удалена", "info");
         renderAll();
     }
 
     function formatTime(sec) {
         if (sec < 0) sec = 0;
-        const h = Math.floor(sec/3600);
-        const m = Math.floor((sec%3600)/60);
-        if (h) return `${h}ч ${m}м`;
-        if (m) return `${m}м`;
-        return `${sec}с`;
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        if (h > 0) return `${h}ч ${m}м`;
+        if (m > 0) return `${m}м ${s}с`;
+        return `${s}с`;
     }
 
     function getLast7Days() {
-        let res = [];
-        for (let i=6; i>=0; i--) {
-            let d = new Date(); d.setDate(d.getDate() - i);
-            let ds = d.toISOString().slice(0,10);
-            let found = dailyHistory.find(h => h.date === ds);
-            let secs = found ? found.seconds : 0;
-            res.push({ date: ds, seconds: secs, label: d.toLocaleDateString('ru-RU', { weekday: 'short' }) });
+        const result = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().slice(0, 10);
+            const found = dailyHistory.find(h => h.date === dateStr);
+            const secs = found ? found.seconds : 0;
+            result.push({
+                label: d.toLocaleDateString('ru-RU', { weekday: 'short' }),
+                seconds: secs
+            });
         }
-        return res;
+        return result;
     }
 
     function getTodaySeconds() {
-        let today = new Date().toISOString().slice(0,10);
-        let entry = dailyHistory.find(d => d.date === today);
+        const today = new Date().toISOString().slice(0, 10);
+        const entry = dailyHistory.find(d => d.date === today);
         return entry ? entry.seconds : 0;
     }
 
     function getLevelInfo(totalHours) {
-        if (totalHours < 2) return { emoji:"🌱", name:"Начинающий", next:2, current:totalHours };
-        if (totalHours < 5) return { emoji:"⚡️", name:"В фокусе", next:5, current:totalHours };
-        if (totalHours < 12) return { emoji:"🔥", name:"Мастер времени", next:12, current:totalHours };
-        if (totalHours < 25) return { emoji:"🏆", name:"Лидер", next:25, current:totalHours };
-        return { emoji:"👑", name:"Гуру", next:null, current:totalHours };
+        if (totalHours < 2) return { emoji: "🌱", name: "Начинающий", next: 2, current: totalHours };
+        if (totalHours < 5) return { emoji: "⚡️", name: "В фокусе", next: 5, current: totalHours };
+        if (totalHours < 12) return { emoji: "🔥", name: "Мастер времени", next: 12, current: totalHours };
+        if (totalHours < 25) return { emoji: "🏆", name: "Лидер", next: 25, current: totalHours };
+        return { emoji: "👑", name: "Гуру", next: null, current: totalHours };
     }
 
     function getAchievements(totalHours, tasksCount, daysTracked) {
-        let a = [];
+        const a = [];
         if (totalHours >= 1) a.push("⏱️ 1 час");
         if (totalHours >= 5) a.push("✨ 5 часов");
         if (totalHours >= 20) a.push("💎 20 часов");
@@ -593,40 +593,45 @@
         if (dailyHistory.some(d => d.seconds >= 7200)) a.push("🔥 Супер-день");
         if (daysTracked >= 7) a.push("📆 Неделя трекинга");
         if (a.length === 0) a.push("➕ Добавьте первую задачу");
-        return a.slice(0,5);
+        return a.slice(0, 5);
     }
 
-    // RENDER
     function renderTaskList() {
         const container = document.getElementById('taskList');
         if (!container) return;
-        if (tasks.length === 0) { container.innerHTML = '<div style="padding:1rem; text-align:center; color:#6c7a91;">Нет задач. Добавьте!</div>'; return; }
+        if (tasks.length === 0) {
+            container.innerHTML = '<div style="padding:1rem; text-align:center;">✨ Нет задач. Добавьте!</div>';
+            return;
+        }
         let html = '';
-        for (let t of tasks) {
+        for (const t of tasks) {
             const isActive = activeTaskId === t.id;
             const prioIcon = t.priority === 'high' ? '🔴' : (t.priority === 'medium' ? '🟠' : '🟢');
             html += `
                 <div class="task-item" style="${isActive ? 'border-left:4px solid #3b82f6; background:#eff6ff;' : ''}">
                     <div class="task-row">
-                        <div class="task-name">
-                            <span>${escapeHtml(t.name)}</span>
-                            <span class="badge-cat">${t.category}</span>
-                            <span>${prioIcon}</span>
-                        </div>
-                        <div class="task-time">${formatTime(t.seconds)}</div>
+                        <div><span style="font-weight:600;">${escapeHtml(t.name)}</span> <span style="font-size:0.7rem;">${t.category}</span> ${prioIcon}</div>
+                        <div>${formatTime(t.seconds)}</div>
                     </div>
-                    <div class="task-actions">
-                        ${!isActive ? `<button class="icon-btn" data-start="${t.id}" style="color:#10b981;"><i class="fas fa-play"></i></button>` : 
-                                      `<button class="icon-btn" data-stop="true" style="color:#f97316;"><i class="fas fa-stop"></i></button>`}
-                        <button class="icon-btn" data-del="${t.id}" style="color:#ef4444;"><i class="fas fa-trash"></i></button>
+                    <div class="task-row" style="justify-content: flex-end;">
+                        <div class="task-actions">
+                            ${!isActive ? `<button class="icon-btn" data-start="${t.id}" style="color:#10b981;"><i class="fas fa-play"></i></button>` : `<button class="icon-btn" data-stop="true" style="color:#f97316;"><i class="fas fa-stop"></i></button>`}
+                            <button class="icon-btn" data-del="${t.id}" style="color:#ef4444;"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
                 </div>
             `;
         }
         container.innerHTML = html;
-        document.querySelectorAll('[data-start]').forEach(btn => btn.addEventListener('click', (e) => startTimer(Number(btn.dataset.start))));
-        document.querySelectorAll('[data-stop]').forEach(btn => btn.addEventListener('click', () => stopTimerAndRecord()));
-        document.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => deleteTask(Number(btn.dataset.del))));
+        document.querySelectorAll('[data-start]').forEach(btn => {
+            btn.addEventListener('click', (e) => startTimer(btn.dataset.start));
+        });
+        document.querySelectorAll('[data-stop]').forEach(btn => {
+            btn.addEventListener('click', () => stopTimerAndRecord());
+        });
+        document.querySelectorAll('[data-del]').forEach(btn => {
+            btn.addEventListener('click', () => deleteTask(btn.dataset.del));
+        });
     }
 
     function renderActiveTimer() {
@@ -634,12 +639,12 @@
         if (!area) return;
         if (activeTaskId && startTimestamp) {
             const task = tasks.find(t => t.id === activeTaskId);
-            const elapsed = Math.floor((Date.now() - startTimestamp)/1000);
+            const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
             area.innerHTML = `
                 <div style="font-weight:500;">🎯 Активно:</div>
                 <div style="background:#e0e7ff; border-radius:2rem; padding:0.2rem 0.8rem; display:inline-block;">${escapeHtml(task?.name)}</div>
                 <div class="timer-digits">${formatTime(elapsed)}</div>
-                <button class="btn-outline" id="stopTimerBtn" style="padding:0.2rem 1rem;">⏹️ Остановить</button>
+                <button class="btn-primary" id="stopTimerBtn" style="padding:0.2rem 1rem; width:auto;">Остановить</button>
             `;
             document.getElementById('stopTimerBtn')?.addEventListener('click', () => stopTimerAndRecord());
         } else {
@@ -648,8 +653,8 @@
     }
 
     function renderAnalyticsAndGamification() {
-        const totalSec = tasks.reduce((s,t)=> s+t.seconds,0);
-        const totalHours = totalSec/3600;
+        const totalSec = tasks.reduce((s, t) => s + t.seconds, 0);
+        const totalHours = totalSec / 3600;
         document.getElementById('totalTime').innerText = formatTime(totalSec);
         document.getElementById('taskCount').innerText = tasks.length;
 
@@ -658,28 +663,42 @@
         const ctx = document.getElementById('weekChart').getContext('2d');
         weekChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: week.map(w=>w.label), datasets: [{ label:'Часы', data: week.map(w=>w.seconds/3600), backgroundColor:'#3b82f6', borderRadius:6 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
+            data: {
+                labels: week.map(w => w.label),
+                datasets: [{
+                    label: 'Часы',
+                    data: week.map(w => w.seconds / 3600),
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false } }
+            }
         });
-        const best = [...week].sort((a,b)=>b.seconds - a.seconds)[0];
-        document.getElementById('insightText').innerHTML = best?.seconds ? `📊 Лучший день: ${best.label} (${formatTime(best.seconds)}). Так держать!` : 'Начните трекать время, чтобы увидеть статистику.';
+
+        const best = [...week].sort((a, b) => b.seconds - a.seconds)[0];
+        document.getElementById('insightText').innerHTML = best?.seconds ? `📊 Лучший день: ${best.label} (${formatTime(best.seconds)}). Отлично!` : 'Начните трекать время, чтобы увидеть статистику.';
 
         const todaySec = getTodaySeconds();
         const goalSec = dailyGoalMinutes * 60;
-        const percent = Math.min(100, (todaySec/goalSec)*100);
-        document.getElementById('todayProgress').innerHTML = Math.floor(percent)+'%';
-        document.getElementById('goalFill').style.width = percent+'%';
+        const percent = Math.min(100, (todaySec / goalSec) * 100);
+        document.getElementById('todayProgress').innerHTML = Math.floor(percent) + '%';
+        document.getElementById('goalFill').style.width = percent + '%';
 
         const level = getLevelInfo(totalHours);
         document.getElementById('levelEmoji').innerHTML = level.emoji;
         document.getElementById('levelName').innerHTML = level.name;
         const nextText = level.next ? `До ${level.next}ч: ${(level.next - level.current).toFixed(1)}ч` : 'Максимум!';
         document.getElementById('nextLevelInfo').innerHTML = nextText;
-        const levelPercent = level.next ? (level.current/level.next)*100 : 100;
-        document.getElementById('levelProgress').style.width = Math.min(100, levelPercent)+'%';
+        const levelPercent = level.next ? (level.current / level.next) * 100 : 100;
+        document.getElementById('levelProgress').style.width = Math.min(100, levelPercent) + '%';
 
         const achievements = getAchievements(totalHours, tasks.length, dailyHistory.length);
-        document.getElementById('achievementsList').innerHTML = achievements.map(a=>`<div class="achieve">${a}</div>`).join('');
+        const achContainer = document.getElementById('achievementsList');
+        achContainer.innerHTML = achievements.map(a => `<span class="achieve" style="background:white; border-radius:40px; padding:0.2rem 0.8rem;">${a}</span>`).join('');
     }
 
     function renderAll() {
@@ -688,55 +707,119 @@
         renderAnalyticsAndGamification();
     }
 
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 
-    // --- Авторизация ---
+    // Регистрация и вход (локальные)
     function register() {
         const name = document.getElementById('regName').value.trim();
         const surname = document.getElementById('regSurname').value.trim();
         const email = document.getElementById('regEmail').value.trim();
         const pwd = document.getElementById('regPassword').value;
         const pwd2 = document.getElementById('regPassword2').value;
-        if (!name || !surname || !email || !pwd) { document.getElementById('regError').innerText = 'Заполните все поля'; return; }
-        if (pwd !== pwd2) { document.getElementById('regError').innerText = 'Пароли не совпадают'; return; }
-        const db = getUsersDB();
-        if (db[email]) { document.getElementById('regError').innerText = 'Email уже существует'; return; }
-        db[email] = { password: hashPassword(pwd), data: { tasks: [], history: [], goal: 60 }, name, surname };
-        saveUsersDB(db);
-        alert('Регистрация успешна! Теперь войдите.');
+        if (!name || !surname || !email || !pwd) {
+            showToast("Заполните все поля", "error");
+            return;
+        }
+        if (pwd !== pwd2) {
+            showToast("Пароли не совпадают", "error");
+            return;
+        }
+        if (usersDB[email]) {
+            showToast("Email уже зарегистрирован", "error");
+            return;
+        }
+        // Сохраняем пользователя (пароль в base64 для простоты, небезопасно, но для локального прототипа ок)
+        usersDB[email] = {
+            password: btoa(pwd),
+            name: name,
+            surname: surname,
+            tasks: [],
+            history: [],
+            goal: 60
+        };
+        saveUsersDB();
+        showToast("Регистрация успешна! Теперь войдите.", "success");
+        // Переключаем на форму входа
         document.querySelector('[data-tab="login"]').click();
+        // Очищаем поля
+        document.getElementById('regName').value = '';
+        document.getElementById('regSurname').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regPassword2').value = '';
     }
 
     function login() {
         const email = document.getElementById('loginEmail').value.trim();
         const pwd = document.getElementById('loginPassword').value;
-        const db = getUsersDB();
-        if (!db[email] || db[email].password !== hashPassword(pwd)) {
-            document.getElementById('loginError').innerText = 'Неверный email или пароль';
+        if (!usersDB[email] || usersDB[email].password !== btoa(pwd)) {
+            showToast("Неверный email или пароль", "error");
             return;
         }
-        currentUser = { email, name: db[email].name, surname: db[email].surname };
-        document.getElementById('userNameDisplay').innerHTML = `<i class="fas fa-user-circle"></i> ${currentUser.name} ${currentUser.surname}`;
-        loadUserData(email);
-        renderAll();
+        currentUserEmail = email;
+        document.getElementById('userNameDisplay').innerHTML = `${usersDB[email].name} ${usersDB[email].surname}`;
+        loadCurrentUserData();
         document.getElementById('authOverlay').classList.add('hidden');
         document.getElementById('appContent').classList.remove('hidden');
-        // сброс ошибок
-        document.getElementById('loginError').innerText = '';
+        showToast(`Добро пожаловать, ${usersDB[email].name}!`, "success");
     }
 
     function logout() {
         stopTimerAndRecord();
-        currentUser = null;
+        currentUserEmail = null;
         tasks = [];
         dailyHistory = [];
         document.getElementById('authOverlay').classList.remove('hidden');
         document.getElementById('appContent').classList.add('hidden');
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
+        showToast("Вы вышли", "info");
     }
 
-    // --- UI инициализация ---
+    // Экспорт/импорт
+    function exportData() {
+        if (!currentUserEmail) return;
+        const data = {
+            tasks: tasks,
+            history: dailyHistory,
+            goal: dailyGoalMinutes,
+            user: { name: usersDB[currentUserEmail].name, surname: usersDB[currentUserEmail].surname }
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `timesense_${currentUserEmail}.json`;
+        a.click();
+        showToast("Данные экспортированы", "success");
+    }
+
+    function importData(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                tasks = data.tasks || [];
+                dailyHistory = data.history || [];
+                dailyGoalMinutes = data.goal || 60;
+                saveCurrentUserData();
+                renderAll();
+                showToast("Импорт выполнен", "success");
+            } catch (err) {
+                showToast("Ошибка файла", "error");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Обработчики событий
     document.querySelectorAll('.auth-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -750,17 +833,69 @@
     document.getElementById('doRegisterBtn').addEventListener('click', register);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('addTaskBtn').addEventListener('click', addTask);
-    document.getElementById('resetDataBtn').addEventListener('click', () => { if(confirm('Сбросить все задачи и историю?')) { tasks=[]; dailyHistory=[]; saveCurrentUserData(); stopTimerAndRecord(); renderAll(); } });
-    document.getElementById('exportBtn').addEventListener('click', () => { const data = {tasks, history: dailyHistory, goal: dailyGoalMinutes}; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)])); a.download = `timesense_${currentUser.email}.json`; a.click(); });
-    document.getElementById('dailyGoalInput').addEventListener('change', (e) => { dailyGoalMinutes = parseInt(e.target.value) || 60; saveCurrentUserData(); renderAnalyticsAndGamification(); });
-    // чипы категорий и приоритетов
-    document.querySelectorAll('#categoryGroup .chip').forEach(chip => chip.addEventListener('click', function() { document.querySelectorAll('#categoryGroup .chip').forEach(c=>c.classList.remove('active')); this.classList.add('active'); }));
-    document.querySelectorAll('#priorityGroup .chip').forEach(chip => chip.addEventListener('click', function() { document.querySelectorAll('#priorityGroup .chip').forEach(c=>c.classList.remove('active')); this.classList.add('active'); }));
-    // активируем чипы по умолчанию
+    document.getElementById('resetDataBtn').addEventListener('click', () => {
+        if (confirm('Удалить все задачи и историю? Отменить нельзя.')) {
+            stopTimerAndRecord();
+            tasks = [];
+            dailyHistory = [];
+            saveCurrentUserData();
+            renderAll();
+            showToast("Все данные сброшены", "info");
+        }
+    });
+    document.getElementById('exportDataBtn').addEventListener('click', exportData);
+    
+    // Импорт через скрытый input
+    const importFileInput = document.createElement('input');
+    importFileInput.type = 'file';
+    importFileInput.accept = '.json';
+    importFileInput.style.display = 'none';
+    document.body.appendChild(importFileInput);
+    document.getElementById('importDataBtn').addEventListener('click', () => importFileInput.click());
+    importFileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) importData(e.target.files[0]);
+        e.target.value = '';
+    });
+
+    document.getElementById('dailyGoalInput').addEventListener('change', (e) => {
+        dailyGoalMinutes = parseInt(e.target.value) || 60;
+        saveCurrentUserData();
+        renderAnalyticsAndGamification();
+    });
+
+    // Чипы категорий и приоритетов
+    document.querySelectorAll('#categoryGroup .chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('#categoryGroup .chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    document.querySelectorAll('#priorityGroup .chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('#priorityGroup .chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
     document.querySelector('#categoryGroup .chip').classList.add('active');
     document.querySelector('#priorityGroup .chip[data-prio="medium"]').classList.add('active');
-    // обработка перед закрытием
-    window.addEventListener('beforeunload', () => { if (timerInterval && activeTaskId && startTimestamp) { const el = Math.floor((Date.now()-startTimestamp)/1000); if(el>0) { const idx = tasks.findIndex(t=>t.id===activeTaskId); if(idx!==-1) tasks[idx].seconds+=el; saveCurrentUserData(); addToTodayHistory(el); } } });
+
+    // Инициализация
+    loadUsersDB();
+
+    // Сохраняем активный таймер перед закрытием
+    window.addEventListener('beforeunload', () => {
+        if (timerInterval && activeTaskId && startTimestamp) {
+            const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+            if (elapsed > 0) {
+                const idx = tasks.findIndex(t => t.id === activeTaskId);
+                if (idx !== -1) {
+                    tasks[idx].seconds += elapsed;
+                    saveCurrentUserData();
+                    addToTodayHistory(elapsed);
+                }
+            }
+        }
+    });
 </script>
 </body>
 </html>
